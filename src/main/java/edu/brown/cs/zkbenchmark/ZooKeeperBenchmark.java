@@ -4,11 +4,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -25,6 +21,7 @@ import org.apache.log4j.FileAppender;
 import org.apache.log4j.Logger;
 
 public class ZooKeeperBenchmark {
+	private int _connections; // 每个客户端的连接数
 	private int _totalOps; // total operations requested by user
 	private AtomicInteger _currentTotalOps; // possibly increased # of ops so test last for requested time
 	private int _lowerbound;
@@ -54,10 +51,14 @@ public class ZooKeeperBenchmark {
 		LinkedList<String> serverList = new LinkedList<String>();
 		Iterator<String> serverNames = conf.getKeys("server");
 
+		_connections = conf.getInt("connections");
+
 		while (serverNames.hasNext()) {
 			String serverName = serverNames.next();
 			String address = conf.getString(serverName);
-			serverList.add(address);
+			for (int i = 0; i < _connections; i++) {
+				serverList.add(address);
+			}
 		}
 		
 		if (serverList.size() == 0) {
@@ -75,7 +76,7 @@ public class ZooKeeperBenchmark {
 		_clients = new BenchmarkClient[serverList.size()];
 		_barrier = new CyclicBarrier(_clients.length+1);
 		_deadline = totaltime / _interval;
-		
+
 		LOG.info("benchmark set with: interval: " + _interval + " total number: " + _totalOps +
 				" threshold: " + _lowerbound + " time: " + totaltime + " sync: " + (sync?"SYNC":"ASYNC"));
 
@@ -310,6 +311,8 @@ public class ZooKeeperBenchmark {
 			withRequiredArg().ofType(Integer.class);
 		parser.accepts("sync", "sync or async test").
 			withRequiredArg().ofType(Boolean.class);
+		parser.accepts("connections", "Connections per server").
+			withRequiredArg().ofType(Integer.class);
 
 		// Parse and gather the arguments
 		try {
@@ -329,6 +332,7 @@ public class ZooKeeperBenchmark {
 		Integer lowerbound = (Integer) options.valueOf("lbound");
 		Integer time = (Integer) options.valueOf("time");
 		Boolean sync = (Boolean) options.valueOf("sync");
+		Integer connections = (Integer) options.valueOf("connections");
 		
 		// Load and parse the configuration file
 		String configFile = (String) options.valueOf("conf");
@@ -342,17 +346,24 @@ public class ZooKeeperBenchmark {
 		}
 
 		// If there are options from command line, override the conf
-		if (interval != null)
+		if (interval != null) {
 			conf.setProperty("interval", interval);
-		if (totOps != null)
+		}
+		if (totOps != null) {
 			conf.setProperty("totalOperations", totOps);
-		if (lowerbound != null)
+		}
+		if (lowerbound != null) {
 			conf.setProperty("lowerbound", lowerbound);
-		if (time != null)
+		}
+		if (time != null) {
 			conf.setProperty("totalTime", time);
-		if (sync != null)
+		}
+		if (sync != null) {
 			conf.setProperty("sync", sync);
-
+		}
+		if (Objects.nonNull(connections)) {
+			conf.setProperty("connections", connections);
+		}
 		return conf;
 	}
 
