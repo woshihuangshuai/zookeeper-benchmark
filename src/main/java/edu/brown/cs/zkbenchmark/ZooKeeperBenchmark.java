@@ -4,6 +4,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
@@ -159,7 +160,9 @@ public class ZooKeeperBenchmark {
 		_currentTotalOps = new AtomicInteger(_totalOps);
 		_finished = false;
 
-		System.out.print("Running " + description + " benchmark for " + _totalTimeSeconds + " seconds... ");
+		SimpleDateFormat sdf = new SimpleDateFormat();
+		sdf.applyPattern("yyyy-MM-dd HH:mm:ss a");
+		System.out.print(sdf.format(new Date()) + "----" +"Running " + description + " benchmark for " + _totalTimeSeconds + " seconds... ");
 
 		try {
 			_rateFile = new BufferedWriter(new FileWriter(new File(test+".dat")));

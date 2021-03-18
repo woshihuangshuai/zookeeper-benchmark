@@ -27,6 +27,9 @@ if [ "$CONF_PATH" == "--gnuplot" ]; then
     CONF_PATH="$CONF_DEFAULT_PATH"
 elif [ "$CONF_PATH" == "" ]; then
     CONF_PATH="$CONF_DEFAULT_PATH"
+else
+    CONNECTIONS="$CONF_PATH"
+    CONF_PATH="$CONF_DEFAULT_PATH"
 fi
 
 if [ "$CONNECTIONS" == "" ]; then
