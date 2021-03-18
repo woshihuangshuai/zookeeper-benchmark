@@ -5,6 +5,7 @@ SCRIPT_DIR="`dirname $0`"
 RUN_NAME="$1"
 CONF_PATH="$2" # optional; we'll check if it's --gnuplot below
 USE_GNUPLOT="$3" # if set to "--gnuplot", plot the output files
+CONNECTIONS="$4"
 
 CONF_DEFAULT_PATH="benchmark.conf"
 
@@ -21,10 +22,15 @@ fi
 # Some ad-hoc argument parsing...
 
 if [ "$CONF_PATH" == "--gnuplot" ]; then
+    CONNECTIONS="$USE_GNUPLOT"
     USE_GNUPLOT="$CONF_PATH"
     CONF_PATH="$CONF_DEFAULT_PATH"
 elif [ "$CONF_PATH" == "" ]; then
     CONF_PATH="$CONF_DEFAULT_PATH"
+fi
+
+if [ "$CONNECTIONS" == "" ]; then
+    CONNECTIONS=1
 fi
 
 if [ ! -f "$CONF_PATH" ]; then
@@ -48,7 +54,7 @@ pushd "$SCRIPT_DIR/$RUN_NAME" 1>/dev/null
 git log -1 --format="%H" > "zookeeper-benchmark.version"
 
 # Run the benchmark
-java -cp ../target/lib/*:../target/* edu.brown.cs.zkbenchmark.ZooKeeperBenchmark --conf "$CONF_FILE" 2>&1 | tee "$RUN_NAME.out"
+java -cp ../target/lib/*:../target/* edu.brown.cs.zkbenchmark.ZooKeeperBenchmark --conf "$CONF_FILE" --connections "$CONNECTIONS" 2>&1 | tee "$RUN_NAME.out"
 
 # Optionally, plot some graphs
 if [ "`which gnuplot`" != "" ] && [ "$USE_GNUPLOT" == "--gnuplot" ]; then
